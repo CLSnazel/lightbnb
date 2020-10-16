@@ -4,7 +4,6 @@ module.exports = function(router, database) {
     database.getAllProperties(req.query, 20)
     .then(properties => {
       res.send({properties});
-      console.log(properties);
     })
     .catch(e => {
       console.error(e);
