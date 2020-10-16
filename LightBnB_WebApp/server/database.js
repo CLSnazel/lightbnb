@@ -16,16 +16,7 @@ const pool = new Pool({
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithEmail = function(email) {
-  // let user;
-  // for (const userId in users) {
-  //   user = users[userId];
-  //   if (user.email.toLowerCase() === email.toLowerCase()) {
-  //     break;
-  //   } else {
-  //     user = null;
-  //   }
-  // }
-  // return Promise.resolve(user);
+
   console.log(email);
   return pool.query(`
     SELECT id, name, email, password
@@ -45,7 +36,7 @@ exports.getUserWithEmail = getUserWithEmail;
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithId = function(id) {
-  // return Promise.resolve(users[id]);
+
   return pool.query(`
     SELECT id, name, email, password
     FROM users
@@ -65,10 +56,7 @@ exports.getUserWithId = getUserWithId;
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser =  function(user) {
-  // const userId = Object.keys(users).length + 1;
-  // user.id = userId;
-  // users[userId] = user;
-  // return Promise.resolve(user);
+
   return pool.query(`
   INSERT INTO users (name, email, password)
   VALUES ($1, $2, $3)
@@ -173,9 +161,31 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function(property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+ 
+  //initializing table & column insertion, values, and parameters to pass to query
+  let queryString = `INSERT INTO properties (`;
+  let newProperty = `VALUES (`;
+  let params = [];
+
+  //looping through and adding field name to column selection, and $n to values
+  for (let field in property) {
+    queryString += " " + field + ",";
+    params.push(property[field]);
+    newProperty += ` $${params.length},`;
+  }
+
+  //capping off both halves with closing parenthesis
+  queryString = queryString.slice(0, queryString.length - 1) + ")";
+  newProperty = newProperty.slice(0, newProperty.length - 1) + ")";
+
+  //adding two halves together to complete query
+  queryString += " " + newProperty + "RETURNING *;";
+
+  console.log(queryString);
+  return pool.query(queryString, params)
+  .then( res => {
+    return res.rows;
+  })
+
 }
 exports.addProperty = addProperty;
